@@ -1,0 +1,163 @@
+<title>FinShorts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one reading column under a sticky masthead; dates run along a ledger-style strip. */
+:root{
+  --bg:#F4F6F5; --surface:#FFFFFF; --ink:#13201B; --muted:#5A6862; --line:#D9E0DD;
+  --accent:#0B7A4B; --accent-soft:#E1F2EA; --warn:#9A5B00; --warn-soft:#FBEFD9; --reg:#3A4BB0; --reg-soft:#E7EAF8;
+  --display:"DM Serif Display",Georgia,serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1412; --surface:#151D1A; --ink:#E5ECE9; --muted:#97A59F; --line:#26312D;
+  --accent:#4FD39A; --accent-soft:#16301F; --warn:#F2B35B; --warn-soft:#3A2A12; --reg:#9EABFF; --reg-soft:#222A52; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1412; --surface:#151D1A; --ink:#E5ECE9; --muted:#97A59F; --line:#26312D;
+  --accent:#4FD39A; --accent-soft:#16301F; --warn:#F2B35B; --warn-soft:#3A2A12; --reg:#9EABFF; --reg-soft:#222A52; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16.5px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--accent);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.wrap{max-width:700px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mast{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.mast .wrap{padding-block:10px 0}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand h1{font:400 1.45rem/1 var(--display);margin:0;white-space:nowrap;cursor:pointer}
+.brand h1 span{color:var(--accent)}
+.views{display:flex;gap:4px}
+.views button{font:600 .74rem/1 var(--body);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line);background:transparent;color:var(--muted);padding:8px 10px;border-radius:999px;cursor:pointer}
+.views button[aria-current="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.dates{display:flex;gap:6px;overflow-x:auto;padding-block:10px;scrollbar-width:none}
+.dates::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;min-width:52px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);cursor:pointer;font-family:var(--mono)}
+.chip small{font-size:.62rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chip b{font-size:1.05rem;line-height:1.2}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.chip.on small{color:var(--surface)}
+main .wrap{padding-block:20px 60px}
+.kicker{font:600 .74rem/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.headline{font:400 clamp(1.65rem,6vw,2.2rem)/1.15 var(--display);margin:.3em 0 .55em;text-wrap:balance}
+.tldr{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px 12px 34px;margin:0}
+.tldr li{margin:.3em 0}
+.tldr li::marker{color:var(--accent);font-weight:700}
+section{margin-top:34px}
+.sh{border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sh h2{font:700 .9rem/1.2 var(--body);letter-spacing:.07em;text-transform:uppercase;margin:0}
+.sh span{font:.72rem/1 var(--mono);color:var(--muted)}
+h3{font:700 1.1rem/1.3 var(--body);margin:0 0 .35em;text-wrap:balance}
+p{margin:0 0 .8em}
+.item{padding:12px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.tag{display:inline-block;font:600 .66rem/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;padding:5px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent);margin-bottom:6px}
+.tag.reg{background:var(--reg-soft);color:var(--reg)}
+.why{font-size:.93rem;color:var(--muted)}
+.why b{color:var(--ink)}
+.src{font:.75rem/1.4 var(--mono)}
+.deals{width:100%;border-collapse:collapse;font-size:.9rem}
+.tw{overflow-x:auto}
+.deals th{font:600 .68rem/1.2 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px 6px 0;border-bottom:1px solid var(--line)}
+.deals td{padding:8px 8px 8px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.deals td.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.num{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.num small{display:block;font:600 .66rem/1.3 var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.num b{display:block;font:600 1.2rem/1.3 var(--mono);font-variant-numeric:tabular-nums}
+.num span{font-size:.82rem;color:var(--muted)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:12px 0}
+.box h4{font:700 .72rem/1.2 var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.box.ex{border-left:3px solid var(--accent);border-radius:0 12px 12px 0}
+details summary{cursor:pointer;font-weight:700}
+details .opt{margin:.3em 0}
+dl{margin:0;display:grid;grid-template-columns:minmax(90px,max-content) 1fr;gap:6px 14px}
+dt{font:600 .85rem/1.6 var(--mono);color:var(--accent)}
+dd{margin:0;min-width:0;font-size:.94rem}
+@media (max-width:420px){dl{grid-template-columns:1fr}}
+.row{display:grid;grid-template-columns:54px 1fr;gap:12px;padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;width:100%;text-align:left;color:var(--ink);font:inherit;cursor:pointer}
+.row .d{font-family:var(--mono);text-align:center;border:1px solid var(--line);border-radius:8px;padding:4px 0;background:var(--surface)}
+.row .d b{display:block;font-size:1.1rem}
+.row .d small{font-size:.62rem;text-transform:uppercase;color:var(--muted)}
+.row .t{font-weight:700;line-height:1.3;min-width:0}
+.row .t span{display:block;font-weight:400;font-size:.88rem;color:var(--muted);margin-top:2px}
+.month{font:600 .74rem/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:24px 0 6px}
+.empty{padding:48px 0;text-align:center;color:var(--muted)}
+.empty h2{font:400 1.6rem/1.2 var(--display);color:var(--ink)}
+</style>
+
+<header class="mast"><div class="wrap">
+  <div class="brand">
+    <h1 id="home" tabindex="0">Fin<span>Shorts</span></h1>
+    <nav class="views" aria-label="Views"><button id="v-today" aria-current="true">Latest</button><button id="v-archive">Archive</button></nav>
+  </div>
+  <div class="dates" id="dates" aria-label="Issues by date"></div>
+</div></header>
+<main><div class="wrap" id="view">
+  <div class="empty"><h2>Loading FinShorts</h2><p>Each morning: the fintech news that matters, what regulators changed, who raised money, and one finance concept explained simply.</p></div>
+</div></main>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s), view = $("#view"), datesEl = $("#dates");
+  let issues = [];
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const url = u => /^https:\/\//i.test(u||"") ? esc(u) : "#";
+  const fmt = s => esc(s).replace(/\*\*([^*]+)\*\*/g,"<strong>$1</strong>");
+  const M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], W=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const P = id => { const [y,m,d]=id.split("-").map(Number); return {y,m,d,mon:M[m-1],dow:W[new Date(Date.UTC(y,m-1,d)).getUTCDay()]}; };
+  const long = id => { const p=P(id); return `${p.dow}, ${p.d} ${p.mon} ${p.y}`; };
+  const route = () => { const h = location.hash.slice(1); return h==="archive" ? {v:"archive"} : {v:"today", id:/^\d{4}-\d{2}-\d{2}$/.test(h)?h:null}; };
+  const go = h => { if (location.hash.slice(1)===h) render(); else location.hash = h; };
+  const srcLink = s => s?.url ? `<div class="src"><a href="${url(s.url)}" target="_blank" rel="noopener">${esc(s.name||s.url)}</a></div>` : "";
+
+  function issueHTML(x){
+    const c = x.concept||{}, out = [];
+    out.push(`<div class="kicker">Issue ${esc(x.issue)} · ${esc(long(x.id))}</div><h2 class="headline">${fmt(x.title)}</h2>`);
+    if (x.tldr?.length) out.push(`<ul class="tldr">${x.tldr.map(t=>`<li>${fmt(t)}</li>`).join("")}</ul>`);
+    if (x.news?.length) out.push(`<section><div class="sh"><h2>What happened</h2><span>${x.news.length} stories</span></div>${x.news.map(n=>`<div class="item"><span class="tag">${esc(n.tag)}</span><h3>${fmt(n.headline)}</h3><p>${fmt(n.what)}</p>${n.why?`<p class="why"><b>Why it matters:</b> ${fmt(n.why)}</p>`:""}${srcLink(n.source)}</div>`).join("")}</section>`);
+    if (x.rules?.length) out.push(`<section><div class="sh"><h2>Rules &amp; regulators</h2></div>${x.rules.map(r=>`<div class="item"><span class="tag reg">${esc(r.regulator)}</span><h3>${fmt(r.headline)}</h3><p>${fmt(r.what)}</p>${r.whoIsAffected?`<p class="why"><b>Who is affected:</b> ${fmt(r.whoIsAffected)}</p>`:""}${r.when?`<p class="why"><b>When:</b> ${fmt(r.when)}</p>`:""}${srcLink(r.source)}</div>`).join("")}</section>`);
+    if (x.deals?.length) out.push(`<section><div class="sh"><h2>Money raised</h2></div><div class="tw"><table class="deals"><thead><tr><th>Company</th><th>Amount</th><th>Round / investors</th></tr></thead><tbody>${x.deals.map(d=>`<tr><td><b>${esc(d.company)}</b><br><span class="why">${fmt(d.what)}</span></td><td class="amt">${esc(d.amount)}</td><td>${esc(d.round)}${d.investors?`<br><span class="why">${esc(d.investors)}</span>`:""}</td></tr>`).join("")}</tbody></table></div></section>`);
+    if (x.numbers?.length) out.push(`<section><div class="sh"><h2>Numbers to know</h2></div><div class="nums">${x.numbers.map(n=>`<div class="num"><small>${esc(n.label)}</small><b>${esc(n.value)}</b><span>${fmt(n.note)}</span></div>`).join("")}</div></section>`);
+    if (c.title) out.push(`<section><div class="sh"><h2>Concept of the day</h2><span>${esc(c.track||"")}${c.lesson?` · Lesson ${esc(c.lesson)}`:""}</span></div>
+      <h3 style="font:400 1.5rem/1.2 var(--display)">${fmt(c.title)}</h3>${c.oneLiner?`<p><em>${fmt(c.oneLiner)}</em></p>`:""}
+      ${(c.body||[]).map(p=>`<p>${fmt(p)}</p>`).join("")}
+      ${c.example?`<div class="box ex"><h4>Example in rupees</h4><p style="margin:0">${fmt(c.example)}</p></div>`:""}
+      ${c.whyItMatters?`<div class="box"><h4>Why it matters to you</h4><p style="margin:0">${fmt(c.whyItMatters)}</p></div>`:""}
+      ${c.terms?.length?`<div class="box"><h4>Key terms</h4><dl>${c.terms.map(t=>`<dt>${esc(t.term)}</dt><dd>${fmt(t.def)}</dd>`).join("")}</dl></div>`:""}</section>`);
+    if (x.quiz?.options) out.push(`<section><div class="sh"><h2>Check yourself</h2></div><p>${fmt(x.quiz.question)}</p>${x.quiz.options.map((o,i)=>`<div class="opt">${"ABCD"[i]}. ${fmt(o)}</div>`).join("")}<details class="box"><summary>Show answer</summary><p style="margin:.5em 0 0"><b>${"ABCD"[x.quiz.answer]}.</b> ${fmt(x.quiz.explain)}</p></details></section>`);
+    if (x.sources?.length) out.push(`<section><div class="sh"><h2>Sources</h2></div><ol class="src">${x.sources.map(s=>`<li><a href="${url(s.url)}" target="_blank" rel="noopener">${esc(s.name||s.url)}</a></li>`).join("")}</ol></section>`);
+    return out.join("");
+  }
+  function archiveHTML(){
+    let out = `<h2 class="headline">All issues</h2>`, cur="";
+    for (const x of issues){ const p=P(x.id), k=`${p.mon} ${p.y}`; if(k!==cur){out+=`<div class="month">${k}</div>`;cur=k;}
+      out += `<button class="row" data-id="${x.id}"><span class="d"><b>${p.d}</b><small>${p.dow}</small></span><span class="t">${fmt(x.title)}<span>Concept: ${esc(x.concept?.title||"")}</span></span></button>`; }
+    return out;
+  }
+  function render(){
+    const r = route();
+    $("#v-today").setAttribute("aria-current", String(r.v==="today")); $("#v-archive").setAttribute("aria-current", String(r.v==="archive"));
+    const x = r.v==="today" ? (issues.find(i=>i.id===r.id) || issues[0]) : null;
+    datesEl.innerHTML = issues.map(i=>{const p=P(i.id);return `<button class="chip ${x&&i.id===x.id?"on":""}" data-id="${i.id}" aria-label="${esc(long(i.id))}"><small>${p.dow}</small><b>${p.d}</b><small>${p.mon}</small></button>`}).join("");
+    if (!issues.length) view.innerHTML = `<div class="empty"><h2>No issues yet</h2><p>The first issue arrives with the next morning run.</p></div>`;
+    else view.innerHTML = x ? issueHTML(x) : archiveHTML();
+    window.scrollTo(0,0);
+  }
+  document.addEventListener("click", e => {
+    const t = e.target.closest("[data-id],#home,#v-today,#v-archive"); if(!t) return;
+    if (t.id==="home"||t.id==="v-today") return go(issues[0]?.id||"");
+    if (t.id==="v-archive") return go("archive");
+    go(t.dataset.id);
+  });
+  window.addEventListener("hashchange", render);
+  (async()=>{
+    const db = await window.claude?.use?.("db");
+    if (!db){ view.innerHTML = `<div class="empty"><h2>Open in Telegram instead</h2><p>This copy needs a claude.ai sign-in. Every issue is also published as a public page linked from your FinShorts bot.</p></div>`; return; }
+    db.collection("issues").onSnapshot(s => {
+      issues = s.docs.filter(d=>d.exists && /^\d{4}-\d{2}-\d{2}$/.test(d.id)).map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id<b.id?1:-1);
+      render();
+    }, e => { view.innerHTML = `<div class="empty"><h2>Couldn't load issues</h2><p>Reload to try again. (${esc(e.code)})</p></div>`; });
+  })();
+})();
+</script>

@@ -1,0 +1,413 @@
+<title>Tokenwise</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: single reading column (max 680px), sticky date rail on top, bottom tab bar for Issue / Archive / Concepts */
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --ink:#14201C; --muted:#5A6B65; --line:#DCE4E1;
+  --accent:#0E6B62; --accent-soft:#DDEFEC; --warm:#A5620F; --warm-soft:#FBEEDC;
+  --good:#1D7A3E; --bad:#B23A2E;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1412; --surface:#161E1B; --ink:#E4ECE9; --muted:#97A8A2; --line:#26322E;
+  --accent:#5CC5B8; --accent-soft:#16302C; --warm:#E9A855; --warm-soft:#2F2414;
+  --good:#5BC27E; --bad:#EE7D70; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1412; --surface:#161E1B; --ink:#E4ECE9; --muted:#97A8A2; --line:#26322E;
+  --accent:#5CC5B8; --accent-soft:#16302C; --warm:#E9A855; --warm-soft:#2F2414;
+  --good:#5BC27E; --bad:#EE7D70; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.brandrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-block:12px 6px}
+.brand{font-family:var(--f-display);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.brand b{color:var(--accent);font-weight:600}
+.brandrow small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.rail{display:flex;gap:8px;overflow-x:auto;padding-block:6px 10px;scrollbar-width:none;scroll-snap-type:x proximity}
+.rail::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;min-width:54px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;position:relative}
+.chip .dow{font-size:10px;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.chip .dd{font-size:18px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.chip .mm{font-size:10px;color:var(--muted)}
+.chip[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.chip[aria-current="true"] .dow,.chip[aria-current="true"] .mm{color:var(--bg);opacity:.85}
+.chip.unread::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--warm)}
+
+/* Section tabs inside issue */
+.sectabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:0 10px}
+.sectabs::-webkit-scrollbar{display:none}
+.sectabs a{flex:0 0 auto;text-decoration:none;color:var(--muted);font-size:13px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid transparent}
+.sectabs a.on{color:var(--accent);background:var(--accent-soft)}
+
+main{padding-block:18px 110px}
+.view[hidden]{display:none}
+
+/* Issue header */
+.kicker{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1.issue-title{font-family:var(--f-display);font-weight:500;font-size:clamp(26px,6.4vw,34px);line-height:1.15;letter-spacing:-.015em;margin:6px 0 14px;text-wrap:balance}
+.readtime{font-size:13px;color:var(--muted)}
+
+section.block{scroll-margin-top:200px;margin-top:30px}
+h2.sec{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+h2.sec::after{content:"";flex:1;height:1px;background:var(--line)}
+
+.tldr{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.tldr li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:16px}
+.tldr li span{font-family:var(--f-mono);font-size:12px;color:var(--warm);padding-top:3px}
+
+.story{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:8px}
+.stories{display:grid;gap:12px}
+.tag{justify-self:start;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:2px 7px;border-radius:6px}
+.story h3{font-family:var(--f-display);font-size:20px;font-weight:600;line-height:1.25;margin:0;text-wrap:balance}
+.story p{margin:0;min-width:0}
+.why{background:var(--warm-soft);border-radius:10px;padding:10px 12px;font-size:15px}
+.why strong{color:var(--warm);font-size:12px;font-family:var(--f-mono);letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:2px}
+.src{font-size:13px;color:var(--muted)}
+
+/* Models table */
+.models{display:grid;gap:10px}
+.mrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+.mrow .uc{font-size:12px;font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);grid-column:1/-1}
+.mrow .pick{font-weight:600;font-size:16.5px}
+.mrow .alt{font-size:13px;color:var(--muted);align-self:center;text-align:right}
+.mrow .mwhy{grid-column:1/-1;font-size:14.5px;color:var(--ink);opacity:.9}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* Concept */
+.lesson{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px}
+.lesson h3{font-family:var(--f-display);font-size:24px;font-weight:600;line-height:1.2;margin:4px 0 6px;text-wrap:balance}
+.lesson .one{font-family:var(--f-display);font-size:18px;font-style:italic;color:var(--muted);margin:0 0 12px}
+.lesson p{margin:0 0 12px}
+.analogy{border-left:3px solid var(--accent);padding:4px 0 4px 12px;margin:14px 0;font-size:15.5px}
+.analogy b{color:var(--accent)}
+.pm{background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-top:6px}
+.pm strong{display:block;font-family:var(--f-mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.pm ul{margin:0;padding-left:18px}
+dl.terms{margin:14px 0 0;display:grid;gap:8px}
+dl.terms div{display:grid;gap:1px}
+dl.terms dt{font-weight:600;font-size:14.5px}
+dl.terms dd{margin:0;font-size:14.5px;color:var(--muted)}
+
+/* Quiz */
+.quiz{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.quiz .q{font-weight:600;margin:0 0 12px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt:hover{border-color:var(--accent)}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--surface))}
+.explain{margin-top:12px;font-size:15px}
+
+.srclist{font-size:13.5px;color:var(--muted);padding-left:18px;margin:0}
+.srclist li{margin-bottom:4px;overflow-wrap:anywhere}
+
+/* Archive / Concepts lists */
+h1.page{font-family:var(--f-display);font-weight:500;font-size:28px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 18px;font-size:14.5px}
+.month{font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:22px 0 8px}
+.list{display:grid;gap:8px}
+.item{display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;text-align:left;width:100%}
+.item .d{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:center;line-height:1.2}
+.item .d b{display:block;font-size:20px;color:var(--ink);font-family:var(--f-ui);font-variant-numeric:tabular-nums}
+.item .t{font-weight:600;line-height:1.3}
+.item .s{font-size:13.5px;color:var(--muted);margin-top:2px}
+.search{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;margin-bottom:6px}
+.trackpill{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:6px;margin-bottom:4px}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 10px;color:var(--muted)}
+.empty h2{font-family:var(--f-display);font-weight:500;color:var(--ink);font-size:24px;margin:0 0 6px}
+
+/* Bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.nav .in{max-width:680px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.nav button{background:none;border:0;padding:9px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:500;color:var(--muted);cursor:pointer}
+.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button[aria-current="true"]{color:var(--accent)}
+.navbtns{display:flex;gap:8px;margin-top:28px}
+.navbtns button{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;font-size:14px}
+.navbtns button:disabled{opacity:.4;cursor:default}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+</style>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="brand">Token<b>wise</b></div>
+      <small id="status">Daily AI brief</small>
+    </div>
+    <div class="rail" id="rail" aria-label="Issues by date"></div>
+    <nav class="sectabs" id="sectabs" aria-label="Sections">
+      <a href="#s-brief" data-s="s-brief" class="on">Brief</a>
+      <a href="#s-news" data-s="s-news">News</a>
+      <a href="#s-models" data-s="s-models">Who's winning</a>
+      <a href="#s-learn" data-s="s-learn">Learn</a>
+      <a href="#s-quiz" data-s="s-quiz">Quiz</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="v-issue" class="view">
+    <div class="empty" id="loading">
+      <h2>Loading your brief…</h2>
+      <p>Each morning at 9:00 a new issue lands here. Older issues stay in the date rail above and in Archive.</p>
+    </div>
+    <article id="issue" hidden></article>
+  </div>
+  <div id="v-archive" class="view" hidden></div>
+  <div id="v-concepts" class="view" hidden></div>
+</main>
+
+<nav class="nav" aria-label="Main">
+  <div class="in">
+    <button data-v="issue" aria-current="true"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>Issue</button>
+    <button data-v="archive"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Archive</button>
+    <button data-v="concepts"><svg viewBox="0 0 24 24"><path d="M4 6.5C6.5 5 9.5 5 12 6.5 14.5 5 17.5 5 20 6.5V19c-2.5-1.5-5.5-1.5-8 0-2.5-1.5-5.5-1.5-8 0z"/><path d="M12 6.5V19"/></svg>Concepts</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MONL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  let issues = [];      // sorted newest first
+  let current = null;   // date string
+  let view = "issue";
+  let conceptQuery = "";
+
+  const store = {
+    get(k){ try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ return null; } },
+    set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  };
+  let readSet = new Set(store.get("tw_read") || []);
+  function markRead(d){ if(!readSet.has(d)){ readSet.add(d); store.set("tw_read",[...readSet]); renderRail(); } }
+
+  function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  // minimal inline markdown: **bold**, *italic*, `code`
+  function md(s){ return esc(s).replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/(^|[^*])\*(?!\s)(.+?)\*/g,"$1<em>$2</em>").replace(/`(.+?)`/g,"<code>$1</code>"); }
+  function safeUrl(u){ return /^https?:\/\//i.test(u||"") ? esc(u) : "#"; }
+  function parts(d){ const [y,m,dd] = d.split("-").map(Number); const dt = new Date(Date.UTC(y,m-1,dd)); return {y, m:m-1, d:dd, dow:DOW[dt.getUTCDay()]}; }
+  function longDate(d){ const p = parts(d); return `${p.dow}, ${p.d} ${MONL[p.m]} ${p.y}`; }
+
+  function renderRail(){
+    const rail = $("#rail");
+    if(!issues.length){ rail.innerHTML = ""; return; }
+    rail.innerHTML = issues.map(i => {
+      const p = parts(i.date);
+      return `<button class="chip${readSet.has(i.date)?"":" unread"}" data-d="${esc(i.date)}" aria-current="${i.date===current}" aria-label="${esc(longDate(i.date))}"><span class="dow">${p.dow}</span><span class="dd">${p.d}</span><span class="mm">${MON[p.m]}</span></button>`;
+    }).join("");
+    const cur = rail.querySelector('[aria-current="true"]');
+    if(cur) cur.scrollIntoView({block:"nearest",inline:"nearest"});
+  }
+
+  function renderIssue(){
+    const it = issues.find(i => i.date === current);
+    const el = $("#issue");
+    if(!it){ el.hidden = true; $("#loading").hidden = false; return; }
+    $("#loading").hidden = true; el.hidden = false;
+    const idx = issues.indexOf(it);
+    const news = it.news || [];
+    const models = it.models || {};
+    const c = it.concept || {};
+    const q = it.quiz;
+    const words = JSON.stringify(it).split(/\s+/).length;
+    const mins = Math.max(3, Math.round(words/230));
+
+    el.innerHTML = `
+      <div class="kicker">Issue ${esc(it.issue || idx+1)} · ${esc(longDate(it.date))}</div>
+      <h1 class="issue-title">${md(it.title || "Today in AI")}</h1>
+      <div class="readtime">${mins} min read</div>
+
+      <section class="block" id="s-brief">
+        <h2 class="sec">The 60-second brief</h2>
+        <ul class="tldr">${(it.tldr||[]).map((t,i)=>`<li><span>0${i+1}</span><div>${md(t)}</div></li>`).join("")}</ul>
+      </section>
+
+      <section class="block" id="s-news">
+        <h2 class="sec">What happened</h2>
+        <div class="stories">${news.map(n=>`
+          <div class="story">
+            ${n.tag?`<span class="tag">${esc(n.tag)}</span>`:""}
+            <h3>${md(n.headline)}</h3>
+            <p>${md(n.what)}</p>
+            ${n.why?`<div class="why"><strong>Why it matters</strong>${md(n.why)}</div>`:""}
+            ${n.source&&n.source.url?`<div class="src">Source: <a href="${safeUrl(n.source.url)}" target="_blank" rel="noopener">${esc(n.source.name||"link")}</a></div>`:""}
+          </div>`).join("")}</div>
+      </section>
+
+      <section class="block" id="s-models">
+        <h2 class="sec">Who's winning, by use case</h2>
+        ${models.intro?`<p style="margin:0 0 12px">${md(models.intro)}</p>`:""}
+        <div class="models">${(models.rows||[]).map(r=>`
+          <div class="mrow">
+            <div class="uc">${esc(r.useCase)}</div>
+            <div class="pick">${md(r.pick)}</div>
+            <div class="alt">${r.runnerUp?`also: ${md(r.runnerUp)}`:""}</div>
+            ${r.why?`<div class="mwhy">${md(r.why)}</div>`:""}
+          </div>`).join("")}</div>
+        ${models.note?`<p class="note">${md(models.note)}</p>`:""}
+      </section>
+
+      <section class="block" id="s-learn">
+        <h2 class="sec">Learn one thing</h2>
+        <div class="lesson">
+          <span class="trackpill">${esc(c.track||"Concept")}${c.lesson?` · Lesson ${esc(c.lesson)}`:""}</span>
+          <h3>${md(c.title||"")}</h3>
+          ${c.oneLiner?`<p class="one">${md(c.oneLiner)}</p>`:""}
+          ${(c.body||[]).map(p=>`<p>${md(p)}</p>`).join("")}
+          ${c.analogy?`<div class="analogy"><b>Think of it like this: </b>${md(c.analogy)}</div>`:""}
+          ${(c.pmTakeaways||[]).length?`<div class="pm"><strong>For you as a PM</strong><ul>${c.pmTakeaways.map(t=>`<li>${md(t)}</li>`).join("")}</ul></div>`:""}
+          ${(c.terms||[]).length?`<dl class="terms">${c.terms.map(t=>`<div><dt>${esc(t.term)}</dt><dd>${md(t.def)}</dd></div>`).join("")}</dl>`:""}
+        </div>
+      </section>
+
+      ${q?`<section class="block" id="s-quiz">
+        <h2 class="sec">Check yourself</h2>
+        <div class="quiz">
+          <p class="q">${md(q.question)}</p>
+          <div class="opts">${(q.options||[]).map((o,i)=>`<button class="opt" id="opt-${i}" data-i="${i}">${md(o)}</button>`).join("")}</div>
+          <div class="explain" id="qexp" hidden>${md(q.explain||"")}</div>
+        </div>
+      </section>`:""}
+
+      ${(it.sources||[]).length?`<section class="block"><h2 class="sec">Sources</h2><ol class="srclist">${it.sources.map(s=>`<li><a href="${safeUrl(s.url)}" target="_blank" rel="noopener">${esc(s.name||s.url)}</a></li>`).join("")}</ol></section>`:""}
+
+      <div class="navbtns">
+        <button id="olderBtn" ${idx>=issues.length-1?"disabled":""}>← Older issue</button>
+        <button id="newerBtn" ${idx<=0?"disabled":""}>Newer issue →</button>
+      </div>`;
+
+    if(q){
+      el.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => {
+        const pick = +b.dataset.i;
+        el.querySelectorAll(".opt").forEach((o,i)=>{ o.disabled = true; if(i===q.answer) o.classList.add("right"); else if(i===pick) o.classList.add("wrong"); });
+        $("#qexp").hidden = false;
+      }));
+    }
+    $("#olderBtn").onclick = () => go(issues[idx+1].date);
+    $("#newerBtn").onclick = () => go(issues[idx-1].date);
+    markRead(it.date);
+  }
+
+  function renderArchive(){
+    const v = $("#v-archive");
+    if(!issues.length){ v.innerHTML = `<div class="empty"><h2>No issues yet</h2><p>The first issue appears here as soon as it's written.</p></div>`; return; }
+    let html = `<h1 class="page">Archive</h1><p class="sub">${issues.length} issue${issues.length>1?"s":""}, newest first. Nothing is ever deleted.</p>`;
+    let lastKey = "";
+    issues.forEach(i => {
+      const p = parts(i.date); const key = p.y+"-"+p.m;
+      if(key!==lastKey){ html += (lastKey?`</div>`:"") + `<div class="month">${MONL[p.m]} ${p.y}</div><div class="list">`; lastKey = key; }
+      html += `<button class="item" data-d="${esc(i.date)}"><div class="d">${p.dow}<b>${p.d}</b></div><div><div class="t">${md(i.title||"")}</div><div class="s">Learn: ${esc((i.concept||{}).title||"")}</div></div></button>`;
+    });
+    v.innerHTML = html + `</div>`;
+  }
+
+  function renderConcepts(){
+    const v = $("#v-concepts");
+    const all = issues.filter(i=>i.concept&&i.concept.title).map(i=>({date:i.date, ...i.concept}));
+    const qq = conceptQuery.trim().toLowerCase();
+    const shown = qq ? all.filter(c => JSON.stringify(c).toLowerCase().includes(qq)) : all;
+    const tracks = {};
+    shown.forEach(c => { (tracks[c.track||"Concepts"] ||= []).push(c); });
+    let html = `<h1 class="page">Concepts</h1><p class="sub">Every lesson so far, grouped by track. Tap one to open its issue.</p>
+      <input class="search" id="csearch" type="search" placeholder="Search concepts and terms" value="${esc(conceptQuery)}" aria-label="Search concepts">`;
+    if(!all.length) html += `<div class="empty"><h2>Your library starts tomorrow</h2><p>Each day's lesson is added here.</p></div>`;
+    else if(!shown.length) html += `<p class="sub" style="margin-top:14px">No lesson matches "${esc(conceptQuery)}".</p>`;
+    Object.keys(tracks).forEach(t => {
+      html += `<div class="month">${esc(t)}</div><div class="list">` + tracks[t].map(c=>{
+        const p = parts(c.date);
+        return `<button class="item" data-d="${esc(c.date)}" data-s="s-learn"><div class="d">${MON[p.m]}<b>${p.d}</b></div><div><div class="t">${md(c.title)}</div><div class="s">${md(c.oneLiner||"")}</div></div></button>`;
+      }).join("") + `</div>`;
+    });
+    v.innerHTML = html;
+    const s = $("#csearch");
+    s.addEventListener("input", () => { conceptQuery = s.value; const pos = s.selectionStart; renderConcepts(); const n = $("#csearch"); n.focus(); try{ n.setSelectionRange(pos,pos);}catch(e){} });
+  }
+
+  function setView(v){
+    view = v;
+    ["issue","archive","concepts"].forEach(n => { $("#v-"+n).hidden = n!==v; });
+    document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.v===v));
+    $("#rail").hidden = v!=="issue"; $("#sectabs").hidden = v!=="issue";
+    if(v==="archive") renderArchive();
+    if(v==="concepts") renderConcepts();
+    window.scrollTo(0,0);
+  }
+
+  function go(d, section){
+    current = d; setView("issue"); renderRail(); renderIssue();
+    try { history.replaceState(null, "", "#d" + d.replace(/-/g,"")); } catch(e){}
+    if(section){ const t = document.getElementById(section); if(t) setTimeout(()=>t.scrollIntoView(),30); }
+  }
+
+  // Clicks
+  document.addEventListener("click", e => {
+    const chip = e.target.closest("[data-d]");
+    if(chip){ go(chip.dataset.d, chip.dataset.s); return; }
+    const nb = e.target.closest(".nav button");
+    if(nb){ setView(nb.dataset.v); return; }
+  });
+
+  // Highlight active section tab while scrolling
+  const tabs = [...document.querySelectorAll("#sectabs a")];
+  tabs.forEach(a => a.addEventListener("click", e => { e.preventDefault(); const t = document.getElementById(a.dataset.s); if(t) t.scrollIntoView(); }));
+  let ticking = false;
+  window.addEventListener("scroll", () => {
+    if(ticking || view!=="issue") return; ticking = true;
+    requestAnimationFrame(() => {
+      let on = "s-brief";
+      tabs.forEach(a => { const t = document.getElementById(a.dataset.s); if(t && t.getBoundingClientRect().top < 220) on = a.dataset.s; });
+      tabs.forEach(a => a.classList.toggle("on", a.dataset.s===on));
+      ticking = false;
+    });
+  }, {passive:true});
+
+  function fromHash(){
+    const m = /^#d(\d{4})(\d{2})(\d{2})$/.exec(location.hash||"");
+    return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
+  }
+
+  // Data
+  (async () => {
+    for(let t=0; !window.claude && t<30; t++) await new Promise(r=>setTimeout(r,100));
+    const db = window.claude ? await window.claude.use("db") : null;
+    if(!db){
+      $("#loading").innerHTML = `<h2>Sign in to read</h2><p>This brief loads its issues from a private store. Open it while signed in to Claude.</p>`;
+      return;
+    }
+    db.collection("issues").onSnapshot(snap => {
+      const firstLoad = !issues.length;
+      issues = snap.docs.filter(d=>d.exists).map(d => ({date:d.id, ...d.data()}))
+        .filter(i => /^\d{4}-\d{2}-\d{2}$/.test(i.date))
+        .sort((a,b) => b.date.localeCompare(a.date));
+      $("#status").textContent = issues.length ? `${issues.length} issue${issues.length>1?"s":""}` : "Daily AI brief";
+      if(!issues.length){ $("#loading").innerHTML = `<h2>First issue is on its way</h2><p>A new brief lands here every morning at 9:00 IST.</p>`; renderRail(); return; }
+      if(firstLoad || !issues.some(i=>i.date===current)){
+        const h = fromHash();
+        current = (h && issues.some(i=>i.date===h)) ? h : issues[0].date;
+      }
+      renderRail();
+      if(view==="issue") renderIssue(); else if(view==="archive") renderArchive(); else renderConcepts();
+    }, err => {
+      $("#loading").innerHTML = `<h2>Couldn't load issues</h2><p>Reload the page to try again.</p>`;
+    });
+  })();
+})();
+</script>
+
